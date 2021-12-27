@@ -2,41 +2,59 @@ const fs = require('fs');
 const path = require('path');
 const db = require('./databasehandler.js');
 
-// List all files in a directory in Node.js recursively in a synchronous fashion
-var WalkDir = function (dir) {
-    var files = fs.readdirSync(dir);
-    files.forEach(function (file) {
-        var fullpath = path.join(dir, file);
+var WalkDir = function (dir, done) {
+    var results = [];
 
-        if (fs.statSync(fullpath).isDirectory()) {
-            WalkDir(fullpath);
-        } else {
-            let filestats = fs.statSync(fullpath);
-
-            db.InsertFile({
-                filename: path.basename(fullpath),
-                fullpath: fullpath,
-                filepath: path.dirname(fullpath),
-                filesize: filestats.size,
-                filetype: path.extname(fullpath),
-                createdAt: filestats.birthtime,
-                updatedAt: filestats.mtime,
-            });
+    fs.readdir(dir, function (err, list) {
+        if (err) {
+            return done(err);
         }
+        var pending = list.length;
+
+        if (!pending) {
+            return done(null, results);
+        }
+        list.forEach(function (file) {
+            file = path.resolve(dir, file);
+
+            fs.stat(file, function (err, stat) {
+                if (stat && stat.isDirectory()) {
+                    WalkDir(file, function (err, res) {
+                        results = results.concat(res);
+                        if (!--pending) {
+                            done(null, results);
+                        }
+                    });
+                } else {
+                    results.push(file);
+                    db.InsertFile({
+                        filename: path.basename(file),
+                        fullpath: file,
+                        filepath: path.dirname(file),
+                        filesize: stat.size,
+                        filetype: path.extname(file),
+                        createdAt: stat.birthtime,
+                        updatedAt: stat.mtime,
+                    });
+                    if (!--pending) {
+                        done(null, results);
+                    }
+                }
+            });
+        });
     });
 };
 
 async function ScanDir(dir) {
     console.log('Scanning directory: ' + dir);
-    try {
-        WalkDir(dir);
-        console.log('Done scanning directory: ' + dir);
-        return true;
-    } catch (err) {
-        console.log('Error scanning directory: ' + dir);
-        console.log(err);
-        return false;
-    }
+    WalkDir(dir, function (err, results) {
+        if (err) {
+            console.log('Error scanning directory: ' + dir);
+        } else {
+            console.log('Done scanning directory: ' + dir);
+            console.log(results);
+        }
+    });
 }
 
 module.exports = {
