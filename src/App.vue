@@ -12,10 +12,20 @@
 
 <script>
 import filehandler from '@/handlers/filehandler';
+import settingshandler from '@/handlers/settingshandler.js';
 
 export default {
     async created() {
-        filehandler.ScanDir('C:\\Users\\STEFF\\Desktop\\pictures');
+        let folders = settingshandler.GetFolders();
+        // If there are no folders, ask user to select one
+        if (folders.length == 0) {
+            let response = filehandler.OpenFolderDialog();
+            if (response.canceled == false) {
+                folders.push(response.filePaths[0]);
+                settingshandler.SetFolders(folders);
+            }
+        }
+        filehandler.ScanDir(folders[0]);
     },
 };
 </script>
@@ -40,5 +50,14 @@ export default {
 
 #nav a.router-link-exact-active {
     color: #42b983;
+}
+
+/* Fix icons not centered in buttons */
+.btn .b-icon {
+    vertical-align: middle !important;
+    margin-right: 0.5rem !important;
+}
+.btn .b-icon:last-child {
+    margin-right: 0 !important;
 }
 </style>

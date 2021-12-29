@@ -16,6 +16,7 @@ const File = {
     },
 };
 
+// Realm singleton
 var realmInstance;
 
 async function getRealm() {
@@ -29,6 +30,7 @@ async function getRealm() {
     }
 }
 
+// Checks if file exists in database. if not then inserts it.
 async function InsertFile(fileinfo) {
     let realm = await getRealm();
     // check if file already exists
@@ -37,7 +39,6 @@ async function InsertFile(fileinfo) {
         return;
     }
 
-    console.log('Inserting file: ' + fileinfo.filename);
     fileinfo._id = new BSON.ObjectID();
     realm.write(() => {
         realm.create('File', fileinfo);

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('./databasehandler.js');
+const { ipcRenderer } = require('electron');
 
 var WalkDir = function (dir, done) {
     var results = [];
@@ -57,6 +58,11 @@ async function ScanDir(dir) {
     });
 }
 
+function OpenFolderDialog() {
+    return ipcRenderer.sendSync('OpenFolderDialog'); // prints "pong"
+}
+
 module.exports = {
     ScanDir,
+    OpenFolderDialog,
 };

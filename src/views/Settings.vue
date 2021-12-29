@@ -1,9 +1,30 @@
 <template>
-    <h1>Settings</h1>
+    <div>
+        <b-row>
+            <b-col>
+                <h2>Folders</h2>
+            </b-col>
+        </b-row>
+        <b-row>
+            <b-col>
+                <Folders />
+            </b-col>
+        </b-row>
+    </div>
 </template>
 
 <script>
-export default {};
+import Folders from '@/components/settings/Folders.vue';
+export default {
+    components: {
+        Folders,
+    },
+};
 </script>
 
-<style></style>
+<style scoped>
+h2 {
+    float: left;
+    margin: 5px;
+}
+</style>
