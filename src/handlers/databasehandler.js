@@ -45,6 +45,13 @@ async function InsertFile(fileinfo) {
     });
 }
 
+async function DeleteFile(file) {
+    let realm = await getRealm();
+    realm.write(() => {
+        realm.delete(file);
+    });
+}
+
 async function GetFullGallery() {
     console.log('Getting all files');
     let realm = await getRealm();
@@ -56,4 +63,5 @@ async function GetFullGallery() {
 module.exports = {
     InsertFile,
     GetFullGallery,
+    DeleteFile,
 };

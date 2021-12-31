@@ -1,11 +1,16 @@
 <template>
     <div id="app">
         <b-container>
-            <div id="nav">
-                <router-link to="/">Gallery</router-link> |
-                <router-link to="/settings">Settings</router-link>
+            <div v-if="loading">
+                <b-spinner></b-spinner>
             </div>
-            <router-view />
+            <div v-else>
+                <div id="nav">
+                    <router-link to="/">Gallery</router-link> |
+                    <router-link to="/settings">Settings</router-link>
+                </div>
+                <router-view />
+            </div>
         </b-container>
     </div>
 </template>
@@ -15,6 +20,11 @@ import filehandler from '@/handlers/filehandler';
 import settingshandler from '@/handlers/settingshandler.js';
 
 export default {
+    data() {
+        return {
+            loading: true,
+        };
+    },
     async created() {
         let folders = settingshandler.GetFolders();
         // If there are no folders, ask user to select one
@@ -25,7 +35,10 @@ export default {
                 settingshandler.SetFolders(folders);
             }
         }
-        filehandler.ScanDir(folders[0]);
+        await filehandler.CheckForDeletedFiles();
+        await filehandler.ScanDir(folders[0], () => {
+            this.loading = false;
+        });
     },
 };
 </script>

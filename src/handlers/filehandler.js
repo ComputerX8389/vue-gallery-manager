@@ -46,23 +46,40 @@ var WalkDir = function (dir, done) {
     });
 };
 
-async function ScanDir(dir) {
+async function ScanDir(dir, callback) {
     console.log('Scanning directory: ' + dir);
-    WalkDir(dir, function (err, results) {
+    WalkDir(dir, function (err) {
         if (err) {
             console.log('Error scanning directory: ' + dir);
         } else {
             console.log('Done scanning directory: ' + dir);
-            console.log(results);
+            callback();
         }
     });
 }
 
+async function CheckForDeletedFiles() {
+    console.log('Checking for deleted files...');
+    var files = await db.GetFullGallery();
+
+    for (var i = 0; i < files.length; i++) {
+        let file = files[i];
+
+        try {
+            await fs.promises.access(file.fullpath);
+        } catch (err) {
+            console.log('File is deleted ' + file.fullpath);
+            db.DeleteFile(file);
+        }
+    }
+}
+
 function OpenFolderDialog() {
-    return ipcRenderer.sendSync('OpenFolderDialog'); // prints "pong"
+    return ipcRenderer.sendSync('OpenFolderDialog');
 }
 
 module.exports = {
     ScanDir,
     OpenFolderDialog,
+    CheckForDeletedFiles,
 };

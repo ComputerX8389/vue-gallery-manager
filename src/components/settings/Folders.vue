@@ -30,7 +30,13 @@ export default {
         AddFolder() {
             let response = filehandler.OpenFolderDialog();
             if (response.canceled == false) {
-                this.folders.push(response.filePaths[0]);
+                let folderpath = response.filePaths[0];
+
+                if (this.folders.includes(folderpath) == false) {
+                    this.folders.push(folderpath);
+                } else {
+                    console.log('Folder already exists');
+                }
             }
         },
         RemoveFolder(index) {
