@@ -5,8 +5,8 @@
         </b-col>
         <b-col v-else>
             <div class="inline" v-for="file in files" :key="file.id">
-                <div @click="PictureClick(file.fullpath)">
-                    <b-img-lazy v-bind="imageProps" :src="file.fullpath"></b-img-lazy>
+                <div class="imagePreviewContianer" @click="PictureClick(file.fullpath)">
+                    <b-img-lazy class="imagePreview" center :src="file.fullpath" fluid></b-img-lazy>
                 </div>
             </div>
         </b-col>
@@ -22,9 +22,6 @@ export default {
         return {
             loading: true,
             files: [],
-            imageProps: {
-                width: 100,
-            },
         };
     },
     methods: {
@@ -43,5 +40,15 @@ export default {
 <style scoped>
 .inline {
     display: inline-block;
+}
+
+.imagePreviewContianer {
+    height: 5rem;
+    width: 5rem;
+}
+
+.imagePreview {
+    max-height: 5rem;
+    max-width: 5rem;
 }
 </style>
