@@ -6,7 +6,7 @@
         <b-col v-else>
             <div class="inline" v-for="file in files" :key="file.id">
                 <div class="imagePreviewContianer" @click="PictureClick(file.fullpath)">
-                    <b-img-lazy class="imagePreview" center :src="file.fullpath" fluid></b-img-lazy>
+                    <b-img-lazy class="imagePreview" center :src="file.thumbnail" fluid></b-img-lazy>
                 </div>
             </div>
         </b-col>

@@ -1,7 +1,8 @@
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const db = require('./databasehandler.js');
-const { ipcRenderer } = require('electron');
+const sharp = require('sharp');
 
 var WalkDir = function (dir, done) {
     var results = [];
@@ -18,7 +19,7 @@ var WalkDir = function (dir, done) {
         list.forEach(function (file) {
             file = path.resolve(dir, file);
 
-            fs.stat(file, function (err, stat) {
+            fs.stat(file, async function (err, stat) {
                 if (stat && stat.isDirectory()) {
                     WalkDir(file, function (err, res) {
                         results = results.concat(res);
@@ -28,7 +29,8 @@ var WalkDir = function (dir, done) {
                     });
                 } else {
                     results.push(file);
-                    db.InsertFile({
+
+                    let dbfile = await db.InsertFile({
                         filename: path.basename(file),
                         fullpath: file,
                         filepath: path.dirname(file),
@@ -36,7 +38,11 @@ var WalkDir = function (dir, done) {
                         filetype: path.extname(file),
                         createdAt: stat.birthtime,
                         updatedAt: stat.mtime,
+                        thumbnail: '',
                     });
+                    if (dbfile) {
+                        GenerateImageThumbnail(dbfile);
+                    }
                     if (!--pending) {
                         done(null, results);
                     }
@@ -65,21 +71,45 @@ async function CheckForDeletedFiles() {
     for (var i = 0; i < files.length; i++) {
         let file = files[i];
 
-        try {
-            await fs.promises.access(file.fullpath);
-        } catch (err) {
+        if ((await FileExits(file.fullpath)) == false) {
             console.log('File is deleted ' + file.fullpath);
             db.DeleteFile(file);
         }
     }
 }
 
-function OpenFolderDialog() {
-    return ipcRenderer.sendSync('OpenFolderDialog');
+async function FileExits(fullpath) {
+    try {
+        await fs.promises.access(fullpath);
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
+function GenerateImageThumbnail(file) {
+    console.log('Generating thumbnail for ' + file._id);
+
+    let temppath = path.join(os.tmpdir(), 'vue-gallery-manager-thumbnails');
+    let thumbPath = path.join(temppath, file._id + '.jpg');
+
+    if (!fs.existsSync(temppath)) {
+        fs.mkdirSync(temppath);
+        console.log('Created temp directory: ' + temppath);
+    }
+
+    sharp(file.fullpath)
+        .resize(100)
+        .toFile(thumbPath, (err) => {
+            if (err) {
+                console.log(err);
+            }
+            file.thumbnail = thumbPath;
+            db.EditFile(file);
+        });
 }
 
 module.exports = {
     ScanDir,
-    OpenFolderDialog,
     CheckForDeletedFiles,
 };

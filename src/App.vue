@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import filehandler from '@/handlers/filehandler';
+const { ipcRenderer } = require('electron');
 import settingshandler from '@/handlers/settingshandler.js';
 
 export default {
@@ -21,16 +21,20 @@ export default {
         let folders = settingshandler.GetFolders();
         // If there are no folders, ask user to select one
         if (folders.length == 0) {
-            let response = filehandler.OpenFolderDialog();
+            let response = ipcRenderer.sendSync('OpenFolderDialog');
             if (response.canceled == false) {
                 folders.push(response.filePaths[0]);
                 settingshandler.SetFolders(folders);
             }
         }
-        await filehandler.CheckForDeletedFiles();
-        await filehandler.ScanDir(folders[0], () => {
-            console.log('Scanning complete');
-        });
+        //await filehandler.CheckForDeletedFiles();
+        //await filehandler.ScanDir(folders[0], () => {
+        //    console.log('Scanning complete');
+        //});
+        setTimeout(() => {
+            console.log('timeout');
+            ipcRenderer.send('ScanDir', folders[0]);
+        }, 5000);
     },
 };
 </script>

@@ -13,6 +13,7 @@ const File = {
         filetype: 'string',
         createdAt: 'date',
         updatedAt: 'date',
+        thumbnail: 'string',
     },
 };
 
@@ -43,6 +44,22 @@ async function InsertFile(fileinfo) {
     realm.write(() => {
         realm.create('File', fileinfo);
     });
+    return fileinfo;
+}
+
+async function EditFile(file) {
+    let realm = await getRealm();
+    let oldfile = realm.objects('File').filtered('_id = $0', file._id)[0];
+    realm.write(() => {
+        oldfile.filename = file.filename;
+        oldfile.fullpath = file.fullpath;
+        oldfile.filepath = file.filepath;
+        oldfile.filesize = file.filesize;
+        oldfile.filetype = file.filetype;
+        oldfile.createdAt = file.createdAt;
+        oldfile.updatedAt = file.updatedAt;
+        oldfile.thumbnail = file.thumbnail;
+    });
 }
 
 async function DeleteFile(file) {
@@ -57,6 +74,7 @@ async function GetFullGallery() {
     let realm = await getRealm();
     let files = realm.objects('File');
     console.log('Found ' + files.length + ' files');
+    console.log(files);
     return files;
 }
 
@@ -64,4 +82,5 @@ module.exports = {
     InsertFile,
     GetFullGallery,
     DeleteFile,
+    EditFile,
 };

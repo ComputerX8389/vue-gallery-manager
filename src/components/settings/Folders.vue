@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import filehandler from '@/handlers/filehandler.js';
+const { ipcRenderer } = require('electron');
 import settingshandler from '@/handlers/settingshandler.js';
 
 export default {
@@ -28,7 +28,7 @@ export default {
     },
     methods: {
         AddFolder() {
-            let response = filehandler.OpenFolderDialog();
+            let response = ipcRenderer.sendSync('OpenFolderDialog');
             if (response.canceled == false) {
                 let folderpath = response.filePaths[0];
 

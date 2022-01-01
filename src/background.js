@@ -81,3 +81,11 @@ if (isDevelopment) {
 ipcMain.on('OpenFolderDialog', async (event) => {
     event.returnValue = await dialog.showOpenDialog({ properties: ['openFile', 'openDirectory'] });
 });
+
+import filehandler from '@/handlers/filehandler';
+
+ipcMain.on('ScanDir', async (event, folder) => {
+    await filehandler.CheckForDeletedFiles();
+    await filehandler.ScanDir(folder);
+    event.reply('ScanDirReply', 'Done');
+});
