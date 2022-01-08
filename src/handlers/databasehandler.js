@@ -72,7 +72,7 @@ async function DeleteFile(file) {
 async function GetFullGallery() {
     console.log('Getting all files');
     let realm = await getRealm();
-    let files = realm.objects('File');
+    let files = realm.objects('File').sorted('createdAt', true);
     console.log('Found ' + files.length + ' files');
     return files;
 }
