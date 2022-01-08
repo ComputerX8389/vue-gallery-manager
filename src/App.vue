@@ -5,6 +5,7 @@
                 <div id="nav">
                     <router-link to="/">Gallery</router-link> |
                     <router-link to="/settings">Settings</router-link>
+                    <b-button squared :disabled="ScanningInProgress" class="RefreshButton" @click="Refresh()"><b-icon-arrow-clockwise /></b-button>
                 </div>
                 <router-view />
             </div>
@@ -17,24 +18,44 @@ const { ipcRenderer } = require('electron');
 import settingshandler from '@/handlers/settingshandler.js';
 
 export default {
-    async created() {
-        let folders = settingshandler.GetFolders();
-        // If there are no folders, ask user to select one
-        if (folders.length == 0) {
-            let response = ipcRenderer.sendSync('OpenFolderDialog');
-            if (response.canceled == false) {
-                folders.push(response.filePaths[0]);
-                settingshandler.SetFolders(folders);
-            }
-        }
-        //await filehandler.CheckForDeletedFiles();
-        //await filehandler.ScanDir(folders[0], () => {
-        //    console.log('Scanning complete');
-        //});
+    name: 'App',
+    data() {
+        return {
+            LastRefreshTime: null,
+            ScanningInProgress: false,
+        };
+    },
+    created() {
+        this.onData = () => {
+            console.log('Scanning done');
+            this.ScanningInProgress = false;
+        };
+        ipcRenderer.on('ScanDirReply', this.onData);
+
         setTimeout(() => {
-            console.log('timeout');
-            ipcRenderer.send('ScanDir', folders[0]);
+            this.Refresh();
         }, 5000);
+    },
+    beforeDestroy() {
+        ipcRenderer.removeListener('ScanDirReply', this.onData);
+    },
+    methods: {
+        Refresh() {
+            console.log('Refreshing');
+            this.ScanningInProgress = true;
+
+            let folders = settingshandler.GetFolders();
+            // If there are no folders, ask user to select one
+            if (folders.length == 0) {
+                let response = ipcRenderer.sendSync('OpenFolderDialog');
+                if (response.canceled == false) {
+                    folders.push(response.filePaths[0]);
+                    settingshandler.SetFolders(folders);
+                }
+            }
+
+            ipcRenderer.send('ScanDir', folders);
+        },
     },
 };
 </script>
@@ -68,5 +89,9 @@ export default {
 }
 .btn .b-icon:last-child {
     margin-right: 0 !important;
+}
+
+.RefreshButton {
+    float: right;
 }
 </style>

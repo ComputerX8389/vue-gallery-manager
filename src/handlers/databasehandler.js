@@ -74,7 +74,6 @@ async function GetFullGallery() {
     let realm = await getRealm();
     let files = realm.objects('File');
     console.log('Found ' + files.length + ' files');
-    console.log(files);
     return files;
 }
 

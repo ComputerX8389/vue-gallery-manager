@@ -52,28 +52,38 @@ var WalkDir = function (dir, done) {
     });
 };
 
-async function ScanDir(dir, callback) {
+async function ScanDir(dir) {
     console.log('Scanning directory: ' + dir);
     WalkDir(dir, function (err) {
         if (err) {
             console.log('Error scanning directory: ' + dir);
         } else {
             console.log('Done scanning directory: ' + dir);
-            callback();
         }
     });
 }
 
-async function CheckForDeletedFiles() {
+async function CheckForDeletedFiles(folders) {
     console.log('Checking for deleted files...');
-    var files = await db.GetFullGallery();
+    let raw = await db.GetFullGallery();
+    let files = [...raw];
 
     for (var i = 0; i < files.length; i++) {
         let file = files[i];
 
-        if ((await FileExits(file.fullpath)) == false) {
+        let fileInKnowFolder = false;
+
+        for (let i = 0; i < folders.length; i++) {
+            const folder = folders[i];
+            if (file.fullpath.startsWith(folder)) {
+                fileInKnowFolder = true;
+            }
+        }
+
+        if ((await FileExits(file.fullpath)) == false || fileInKnowFolder == false) {
             console.log('File is deleted ' + file.fullpath);
-            db.DeleteFile(file);
+            fs.unlinkSync(file.thumbnail);
+            await db.DeleteFile(file);
         }
     }
 }

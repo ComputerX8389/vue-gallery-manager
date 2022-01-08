@@ -84,8 +84,15 @@ ipcMain.on('OpenFolderDialog', async (event) => {
 
 import filehandler from '@/handlers/filehandler';
 
-ipcMain.on('ScanDir', async (event, folder) => {
-    await filehandler.CheckForDeletedFiles();
-    await filehandler.ScanDir(folder);
-    event.reply('ScanDirReply', 'Done');
+ipcMain.on('ScanDir', async (event, folders) => {
+    console.log('ScanDir called');
+    await filehandler.CheckForDeletedFiles(folders);
+
+    for (let i = 0; i < folders.length; i++) {
+        const folder = folders[i];
+
+        await filehandler.ScanDir(folder);
+    }
+
+    event.reply('ScanDirReply');
 });
